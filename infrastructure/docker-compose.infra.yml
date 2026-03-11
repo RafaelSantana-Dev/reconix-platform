@@ -1,0 +1,221 @@
+version: '3.9'
+
+services:
+
+  # ==========================================
+  # PostgreSQL (Dados transacionais)
+  # ==========================================
+  postgres:
+    image: postgres:16-alpine
+    container_name: reconix-postgres
+    restart: unless-stopped
+    ports:
+      - "5432:5432"
+    environment:
+      POSTGRES_USER: reconix
+      POSTGRES_PASSWORD: reconix123
+      POSTGRES_DB: reconix_db
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./init-scripts/postgres:/docker-entrypoint-initdb.d
+    networks:
+      - reconix-network
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U reconix"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # ==========================================
+  # MongoDB (Event Store + Documentos)
+  # ==========================================
+  mongodb:
+    image: mongo:7
+    container_name: reconix-mongodb
+    restart: unless-stopped
+    ports:
+      - "27017:27017"
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: reconix
+      MONGO_INITDB_ROOT_PASSWORD: reconix123
+      MONGO_INITDB_DATABASE: reconix_events
+    volumes:
+      - mongodb_data:/data/db
+    networks:
+      - reconix-network
+    healthcheck:
+      test: echo 'db.runCommand("ping").ok' | mongosh localhost:27017/test --quiet
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # ==========================================
+  # Redis (Cache + Sessoes + Idempotencia)
+  # ==========================================
+  redis:
+    image: redis:7-alpine
+    container_name: reconix-redis
+    restart: unless-stopped
+    ports:
+      - "6379:6379"
+    command: redis-server --requirepass reconix123 --maxmemory 256mb --maxmemory-policy allkeys-lru
+    volumes:
+      - redis_data:/data
+    networks:
+      - reconix-network
+    healthcheck:
+      test: ["CMD", "redis-cli", "-a", "reconix123", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # ==========================================
+  # Elasticsearch (Full-text Search)
+  # ==========================================
+  elasticsearch:
+    image: docker.elastic.co/elasticsearch/elasticsearch:8.13.0
+    container_name: reconix-elasticsearch
+    restart: unless-stopped
+    ports:
+      - "9200:9200"
+    environment:
+      - discovery.type=single-node
+      - xpack.security.enabled=false
+      - ES_JAVA_OPTS=-Xms512m -Xmx512m
+    volumes:
+      - elasticsearch_data:/usr/share/elasticsearch/data
+    networks:
+      - reconix-network
+    healthcheck:
+      test: curl -s http://localhost:9200 >/dev/null || exit 1
+      interval: 15s
+      timeout: 10s
+      retries: 5
+
+  # ==========================================
+  # RabbitMQ (Mensageria + DLQ)
+  # ==========================================
+  rabbitmq:
+    image: rabbitmq:3.13-management-alpine
+    container_name: reconix-rabbitmq
+    restart: unless-stopped
+    ports:
+      - "5672:5672"
+      - "15672:15672"
+    environment:
+      RABBITMQ_DEFAULT_USER: reconix
+      RABBITMQ_DEFAULT_PASS: reconix123
+    volumes:
+      - rabbitmq_data:/var/lib/rabbitmq
+    networks:
+      - reconix-network
+    healthcheck:
+      test: rabbitmq-diagnostics -q ping
+      interval: 15s
+      timeout: 10s
+      retries: 5
+
+  # ==========================================
+  # Apache Kafka + Zookeeper (Event Log)
+  # ==========================================
+  zookeeper:
+    image: confluentinc/cp-zookeeper:7.6.0
+    container_name: reconix-zookeeper
+    restart: unless-stopped
+    ports:
+      - "2181:2181"
+    environment:
+      ZOOKEEPER_CLIENT_PORT: 2181
+      ZOOKEEPER_TICK_TIME: 2000
+    volumes:
+      - zookeeper_data:/var/lib/zookeeper/data
+    networks:
+      - reconix-network
+
+  kafka:
+    image: confluentinc/cp-kafka:7.6.0
+    container_name: reconix-kafka
+    restart: unless-stopped
+    depends_on:
+      - zookeeper
+    ports:
+      - "9092:9092"
+    environment:
+      KAFKA_BROKER_ID: 1
+      KAFKA_ZOOKEEPER_CONNECT: zookeeper:2181
+      KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://kafka:29092,PLAINTEXT_HOST://localhost:9092
+      KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: PLAINTEXT:PLAINTEXT,PLAINTEXT_HOST:PLAINTEXT
+      KAFKA_INTER_BROKER_LISTENER_NAME: PLAINTEXT
+      KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
+      KAFKA_AUTO_CREATE_TOPICS_ENABLE: "true"
+    volumes:
+      - kafka_data:/var/lib/kafka/data
+    networks:
+      - reconix-network
+    healthcheck:
+      test: kafka-topics --bootstrap-server kafka:29092 --list
+      interval: 15s
+      timeout: 10s
+      retries: 5
+
+  # ==========================================
+  # Keycloak (Identity Provider - OAuth2)
+  # ==========================================
+  keycloak:
+    image: quay.io/keycloak/keycloak:24.0
+    container_name: reconix-keycloak
+    restart: unless-stopped
+    command: start-dev
+    ports:
+      - "8180:8080"
+    environment:
+      KEYCLOAK_ADMIN: admin
+      KEYCLOAK_ADMIN_PASSWORD: admin
+      KC_DB: postgres
+      KC_DB_URL: jdbc:postgresql://postgres:5432/reconix_db
+      KC_DB_USERNAME: reconix
+      KC_DB_PASSWORD: reconix123
+    depends_on:
+      postgres:
+        condition: service_healthy
+    networks:
+      - reconix-network
+
+  # ==========================================
+  # MinIO (Object Storage S3-Compatible)
+  # ==========================================
+  minio:
+    image: minio/minio:latest
+    container_name: reconix-minio
+    restart: unless-stopped
+    ports:
+      - "9000:9000"
+      - "9001:9001"
+    environment:
+      MINIO_ROOT_USER: reconix
+      MINIO_ROOT_PASSWORD: reconix123
+    command: server /data --console-address ":9001"
+    volumes:
+      - minio_data:/data
+    networks:
+      - reconix-network
+    healthcheck:
+      test: ["CMD", "mc", "ready", "local"]
+      interval: 15s
+      timeout: 10s
+      retries: 5
+
+volumes:
+  postgres_data:
+  mongodb_data:
+  redis_data:
+  elasticsearch_data:
+  rabbitmq_data:
+  zookeeper_data:
+  kafka_data:
+  minio_data:
+
+networks:
+  reconix-network:
+    driver: bridge
+    name: reconix-network

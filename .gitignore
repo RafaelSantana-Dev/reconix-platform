@@ -27,3 +27,5 @@ replay_pid*
 *.iml
 *.iws
 *.ipr
+# Environment variables
+.env

@@ -1,118 +1,82 @@
-package com.reconix.auth.service;
+﻿package com.reconix.auth.service;
 
-import com.reconix.auth.config.KeycloakProperties;
-import com.reconix.auth.dto.LoginRequest;
-import com.reconix.auth.dto.LoginResponse;
-import com.reconix.auth.dto.LogoutRequest;
-import com.reconix.auth.dto.TokenRefreshRequest;
-import com.reconix.auth.exception.AuthenticationFailedException;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import org.springframework.http.MediaType;
+import com.reconix.auth.domain.dto.AuthResponse;
+import com.reconix.auth.domain.dto.LoginRequest;
+import com.reconix.auth.domain.dto.RegisterRequest;
+import com.reconix.auth.domain.entity.Tenant;
+import com.reconix.auth.domain.entity.User;
+import com.reconix.auth.domain.enums.Role;
+import com.reconix.auth.repository.TenantRepository;
+import com.reconix.auth.repository.UserRepository;
+//import com.reconix.auth.security.JwtTokenProvider; // Vamos descomentar depois
+import lombok.RequiredArgsConstructor;
+//import org.springframework.security.crypto.password.PasswordEncoder; // Vamos descomentar depois
 import org.springframework.stereotype.Service;
-import org.springframework.util.LinkedMultiValueMap;
-import org.springframework.util.MultiValueMap;
-import org.springframework.web.client.RestClient;
-import org.springframework.web.client.RestClientResponseException;
+import org.springframework.transaction.annotation.Transactional;
 
 @Service
+@RequiredArgsConstructor
 public class AuthService {
 
-    private static final Logger log = LoggerFactory.getLogger(AuthService.class);
+    private final UserRepository userRepository;
+    private final TenantRepository tenantRepository;
+    //private final PasswordEncoder passwordEncoder;
+    //private final JwtTokenProvider jwtTokenProvider;
 
-    private final RestClient keycloakRestClient;
-    private final KeycloakProperties keycloakProperties;
+    @Transactional
+    public AuthResponse register(RegisterRequest request) {
+        if (userRepository.existsByEmail(request.email())) {
+            throw new RuntimeException("Email ja cadastrado: " + request.email());
+        }
 
-    public AuthService(RestClient keycloakRestClient, KeycloakProperties keycloakProperties) {
-        this.keycloakRestClient = keycloakRestClient;
-        this.keycloakProperties = keycloakProperties;
+        Tenant tenant = tenantRepository.findBySlug(request.tenantSlug())
+                .orElseThrow(() -> new RuntimeException("Tenant nao encontrado: " + request.tenantSlug()));
+
+        User user = User.builder()
+                .name(request.name())
+                .email(request.email())
+                //.password(passwordEncoder.encode(request.password()))
+                .password(request.password()) // Temporario, sem criptografia por enquanto
+                .role(Role.ANALYST)
+                .tenant(tenant)
+                .build();
+
+        User saved = userRepository.save(user);
+        return generateAuthResponse(saved);
     }
 
-    /**
-     * Autentica o usuario no Keycloak e retorna os tokens JWT.
-     */
-    public LoginResponse login(LoginRequest request) {
-        log.info("[AUTH] Tentativa de login para usuario: {}", request.username());
+    @Transactional(readOnly = true)
+    public AuthResponse login(LoginRequest request) {
+        User user = userRepository.findByEmail(request.email())
+                .orElseThrow(() -> new RuntimeException("Credenciais invalidas."));
 
-        MultiValueMap<String, String> formData = new LinkedMultiValueMap<>();
-        formData.add("grant_type", "password");
-        formData.add("client_id", keycloakProperties.clientId());
-        formData.add("client_secret", keycloakProperties.clientSecret());
-        formData.add("username", request.username());
-        formData.add("password", request.password());
-        formData.add("scope", "openid");
-
-        try {
-            LoginResponse response = keycloakRestClient.post()
-                    .uri(keycloakProperties.tokenUrl())
-                    .contentType(MediaType.APPLICATION_FORM_URLENCODED)
-                    .body(formData)
-                    .retrieve()
-                    .body(LoginResponse.class);
-
-            log.info("[AUTH] Login realizado com sucesso para usuario: {}", request.username());
-            return response;
-
-        } catch (RestClientResponseException e) {
-            log.warn("[AUTH] Falha no login para usuario: {} | Status: {}",
-                    request.username(), e.getStatusCode());
-            throw new AuthenticationFailedException("Credenciais invalidas");
+        //if (!passwordEncoder.matches(request.password(), user.getPassword())) {
+        if (!user.getPassword().equals(request.password())) { // Temporario, sem criptografia
+            throw new RuntimeException("Credenciais invalidas.");
         }
+
+        if (!user.getActive()) {
+            throw new RuntimeException("Usuario desativado.");
+        }
+
+        return generateAuthResponse(user);
     }
 
-    /**
-     * Renova o access token usando o refresh token.
-     */
-    public LoginResponse refreshToken(TokenRefreshRequest request) {
-        log.info("[AUTH] Tentativa de refresh token");
+    private AuthResponse generateAuthResponse(User user) {
+        // String accessToken = jwtTokenProvider.generateAccessToken(user);
+        // String refreshToken = jwtTokenProvider.generateRefreshToken(user);
 
-        MultiValueMap<String, String> formData = new LinkedMultiValueMap<>();
-        formData.add("grant_type", "refresh_token");
-        formData.add("client_id", keycloakProperties.clientId());
-        formData.add("client_secret", keycloakProperties.clientSecret());
-        formData.add("refresh_token", request.refreshToken());
+        // Mockando os tokens ate implementarmos a camada JWT
+        String accessToken = "DUMMY_TOKEN";
+        String refreshToken = "DUMMY_REFRESH_TOKEN";
 
-        try {
-            LoginResponse response = keycloakRestClient.post()
-                    .uri(keycloakProperties.tokenUrl())
-                    .contentType(MediaType.APPLICATION_FORM_URLENCODED)
-                    .body(formData)
-                    .retrieve()
-                    .body(LoginResponse.class);
-
-            log.info("[AUTH] Token renovado com sucesso");
-            return response;
-
-        } catch (RestClientResponseException e) {
-            log.warn("[AUTH] Falha ao renovar token | Status: {}", e.getStatusCode());
-            throw new AuthenticationFailedException("Refresh token invalido ou expirado");
-        }
-    }
-
-    /**
-     * Invalida a sessao do usuario no Keycloak.
-     */
-    public void logout(LogoutRequest request) {
-        log.info("[AUTH] Tentativa de logout");
-
-        MultiValueMap<String, String> formData = new LinkedMultiValueMap<>();
-        formData.add("client_id", keycloakProperties.clientId());
-        formData.add("client_secret", keycloakProperties.clientSecret());
-        formData.add("refresh_token", request.refreshToken());
-
-        try {
-            keycloakRestClient.post()
-                    .uri(keycloakProperties.logoutUrl())
-                    .contentType(MediaType.APPLICATION_FORM_URLENCODED)
-                    .body(formData)
-                    .retrieve()
-                    .toBodilessEntity();
-
-            log.info("[AUTH] Logout realizado com sucesso");
-
-        } catch (RestClientResponseException e) {
-            log.warn("[AUTH] Falha no logout | Status: {}", e.getStatusCode());
-            throw new AuthenticationFailedException("Falha ao realizar logout");
-        }
+        return new AuthResponse(
+                accessToken,
+                refreshToken,
+                "Bearer",
+                3600L,
+                user.getTenant().getSlug(),
+                user.getRole().name()
+        );
     }
 }

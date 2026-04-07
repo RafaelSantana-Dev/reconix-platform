@@ -1,14 +1,13 @@
-﻿package com.reconix.auth;
+﻿package com.reconix.auth.domain.dto;
 
-import org.springframework.boot.SpringApplication;
-import org.springframework.boot.autoconfigure.SpringBootApplication;
-import org.springframework.cloud.client.discovery.EnableDiscoveryClient;
+import jakarta.validation.constraints.Email;
+import jakarta.validation.constraints.NotBlank;
 
-@SpringBootApplication
-@EnableDiscoveryClient
-public class ReconixAuthApplication {
+public record LoginRequest(
+        @NotBlank(message = "Email é obrigatório")
+        @Email(message = "Email inválido")
+        String email,
 
-    public static void main(String[] args) {
-        SpringApplication.run(ReconixAuthApplication.class, args);
-    }
-}
+        @NotBlank(message = "Senha é obrigatória")
+        String password
+) {}

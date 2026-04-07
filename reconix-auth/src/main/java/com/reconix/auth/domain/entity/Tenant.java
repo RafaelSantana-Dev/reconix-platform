@@ -1,9 +1,11 @@
-﻿package com.reconix.auth.domain.entity;
+package com.reconix.auth.domain.entity;
 
 import jakarta.persistence.*;
 import lombok.*;
+import org.hibernate.annotations.UuidGenerator;
 
 import java.time.OffsetDateTime;
+import java.util.UUID;
 
 @Entity
 @Table(name = "tenants")
@@ -11,8 +13,9 @@ import java.time.OffsetDateTime;
 public class Tenant {
 
     @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;
+    @UuidGenerator
+    @Column(updatable = false, nullable = false)
+    private UUID id;
 
     @Column(nullable = false, unique = true, length = 100)
     private String name;

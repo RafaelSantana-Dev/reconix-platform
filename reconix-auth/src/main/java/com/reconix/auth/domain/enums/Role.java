@@ -1,4 +1,4 @@
-﻿package com.reconix.auth.domain.enums;
+package com.reconix.auth.domain.enums;
 
 public enum Role {
     ADMIN,

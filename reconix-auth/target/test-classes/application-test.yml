@@ -1,0 +1,28 @@
+server:
+  port: 0
+
+spring:
+  application:
+    name: reconix-auth-test
+  security:
+    oauth2:
+      resourceserver:
+        jwt:
+          issuer-uri: http://localhost:8180/realms/reconix
+          jwk-set-uri: http://localhost:8180/realms/reconix/protocol/openid-connect/certs
+  autoconfigure:
+    exclude:
+      - org.springframework.boot.autoconfigure.data.redis.RedisAutoConfiguration
+      - org.springframework.boot.autoconfigure.data.redis.RedisRepositoriesAutoConfiguration
+
+keycloak:
+  server-url: http://localhost:8180
+  realm: reconix
+  client-id: reconix-api
+  client-secret: test-secret
+  admin-username: admin
+  admin-password: admin
+
+eureka:
+  client:
+    enabled: false

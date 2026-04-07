@@ -1,13 +1,11 @@
-﻿package com.reconix.auth.domain.dto;
+package com.reconix.auth;
 
-import jakarta.validation.constraints.Email;
-import jakarta.validation.constraints.NotBlank;
+import org.springframework.boot.SpringApplication;
+import org.springframework.boot.autoconfigure.SpringBootApplication;
 
-public record LoginRequest(
-        @NotBlank(message = "Email é obrigatório")
-        @Email(message = "Email inválido")
-        String email,
-
-        @NotBlank(message = "Senha é obrigatória")
-        String password
-) {}
+@SpringBootApplication
+public class ReconixAuthApplication {
+    public static void main(String[] args) {
+        SpringApplication.run(ReconixAuthApplication.class, args);
+    }
+}

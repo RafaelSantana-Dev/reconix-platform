@@ -1,82 +1,118 @@
-﻿package com.reconix.auth.service;
+package com.reconix.auth.service;
 
-import com.reconix.auth.domain.dto.AuthResponse;
-import com.reconix.auth.domain.dto.LoginRequest;
-import com.reconix.auth.domain.dto.RegisterRequest;
-import com.reconix.auth.domain.entity.Tenant;
-import com.reconix.auth.domain.entity.User;
-import com.reconix.auth.domain.enums.Role;
-import com.reconix.auth.repository.TenantRepository;
-import com.reconix.auth.repository.UserRepository;
-//import com.reconix.auth.security.JwtTokenProvider; // Vamos descomentar depois
-import lombok.RequiredArgsConstructor;
-//import org.springframework.security.crypto.password.PasswordEncoder; // Vamos descomentar depois
+import com.reconix.auth.dto.LoginRequest;
+import com.reconix.auth.dto.LoginResponse;
+import com.reconix.auth.dto.LogoutRequest;
+import com.reconix.auth.dto.TokenRefreshRequest;
+import com.reconix.auth.exception.AuthenticationFailedException;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.http.MediaType;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.client.RestClient;
+import org.springframework.web.client.RestClientResponseException;
+
+import java.util.Map;
 
 @Service
-@RequiredArgsConstructor
 public class AuthService {
 
-    private final UserRepository userRepository;
-    private final TenantRepository tenantRepository;
-    //private final PasswordEncoder passwordEncoder;
-    //private final JwtTokenProvider jwtTokenProvider;
+    private static final Logger log = LoggerFactory.getLogger(AuthService.class);
 
-    @Transactional
-    public AuthResponse register(RegisterRequest request) {
-        if (userRepository.existsByEmail(request.email())) {
-            throw new RuntimeException("Email ja cadastrado: " + request.email());
-        }
+    private final RestClient keycloakRestClient;
 
-        Tenant tenant = tenantRepository.findBySlug(request.tenantSlug())
-                .orElseThrow(() -> new RuntimeException("Tenant nao encontrado: " + request.tenantSlug()));
-
-        User user = User.builder()
-                .name(request.name())
-                .email(request.email())
-                //.password(passwordEncoder.encode(request.password()))
-                .password(request.password()) // Temporario, sem criptografia por enquanto
-                .role(Role.ANALYST)
-                .tenant(tenant)
-                .build();
-
-        User saved = userRepository.save(user);
-        return generateAuthResponse(saved);
+    public AuthService(RestClient keycloakRestClient) {
+        this.keycloakRestClient = keycloakRestClient;
     }
 
-    @Transactional(readOnly = true)
-    public AuthResponse login(LoginRequest request) {
-        User user = userRepository.findByEmail(request.email())
-                .orElseThrow(() -> new RuntimeException("Credenciais invalidas."));
+    @SuppressWarnings("unchecked")
+    public LoginResponse login(LoginRequest request) {
+        String formBody = "grant_type=password"
+                + "&client_id=reconix-backend"
+                + "&username=" + request.username()
+                + "&password=" + request.password();
 
-        //if (!passwordEncoder.matches(request.password(), user.getPassword())) {
-        if (!user.getPassword().equals(request.password())) { // Temporario, sem criptografia
-            throw new RuntimeException("Credenciais invalidas.");
+        try {
+            Map<String, Object> response = keycloakRestClient.post()
+                    .uri("/protocol/openid-connect/token")
+                    .contentType(MediaType.APPLICATION_FORM_URLENCODED)
+                    .body(formBody)
+                    .retrieve()
+                    .body(Map.class);
+
+            if (response == null) {
+                throw new AuthenticationFailedException("Resposta vazia do Keycloak");
+            }
+
+            log.info("[AUTH-SERVICE] Login realizado com sucesso para: {}", request.username());
+
+            return new LoginResponse(
+                    (String) response.get("access_token"),
+                    (String) response.get("refresh_token"),
+                    (String) response.getOrDefault("token_type", "Bearer"),
+                    ((Number) response.getOrDefault("expires_in", 300)).longValue(),
+                    (String) response.get("session_state"),
+                    (String) response.get("scope")
+            );
+
+        } catch (RestClientResponseException e) {
+            log.warn("[AUTH-SERVICE] Falha no login para: {} | Status: {}", request.username(), e.getStatusCode());
+            throw new AuthenticationFailedException("Credenciais invalidas");
         }
-
-        if (!user.getActive()) {
-            throw new RuntimeException("Usuario desativado.");
-        }
-
-        return generateAuthResponse(user);
     }
 
-    private AuthResponse generateAuthResponse(User user) {
-        // String accessToken = jwtTokenProvider.generateAccessToken(user);
-        // String refreshToken = jwtTokenProvider.generateRefreshToken(user);
+    @SuppressWarnings("unchecked")
+    public LoginResponse refreshToken(TokenRefreshRequest request) {
+        String formBody = "grant_type=refresh_token"
+                + "&client_id=reconix-backend"
+                + "&refresh_token=" + request.refreshToken();
 
-        // Mockando os tokens ate implementarmos a camada JWT
-        String accessToken = "DUMMY_TOKEN";
-        String refreshToken = "DUMMY_REFRESH_TOKEN";
+        try {
+            Map<String, Object> response = keycloakRestClient.post()
+                    .uri("/protocol/openid-connect/token")
+                    .contentType(MediaType.APPLICATION_FORM_URLENCODED)
+                    .body(formBody)
+                    .retrieve()
+                    .body(Map.class);
 
-        return new AuthResponse(
-                accessToken,
-                refreshToken,
-                "Bearer",
-                3600L,
-                user.getTenant().getSlug(),
-                user.getRole().name()
-        );
+            if (response == null) {
+                throw new AuthenticationFailedException("Resposta vazia do Keycloak");
+            }
+
+            log.info("[AUTH-SERVICE] Token renovado com sucesso");
+
+            return new LoginResponse(
+                    (String) response.get("access_token"),
+                    (String) response.get("refresh_token"),
+                    (String) response.getOrDefault("token_type", "Bearer"),
+                    ((Number) response.getOrDefault("expires_in", 300)).longValue(),
+                    (String) response.get("session_state"),
+                    (String) response.get("scope")
+            );
+
+        } catch (RestClientResponseException e) {
+            log.warn("[AUTH-SERVICE] Falha ao renovar token | Status: {}", e.getStatusCode());
+            throw new AuthenticationFailedException("Refresh token invalido ou expirado");
+        }
+    }
+
+    public void logout(LogoutRequest request) {
+        String formBody = "client_id=reconix-backend"
+                + "&refresh_token=" + request.refreshToken();
+
+        try {
+            keycloakRestClient.post()
+                    .uri("/protocol/openid-connect/logout")
+                    .contentType(MediaType.APPLICATION_FORM_URLENCODED)
+                    .body(formBody)
+                    .retrieve()
+                    .toBodilessEntity();
+
+            log.info("[AUTH-SERVICE] Logout realizado com sucesso");
+
+        } catch (RestClientResponseException e) {
+            log.warn("[AUTH-SERVICE] Falha no logout | Status: {}", e.getStatusCode());
+            throw new AuthenticationFailedException("Falha ao realizar logout");
+        }
     }
 }

@@ -1,4 +1,4 @@
-﻿package com.reconix.auth.repository;
+package com.reconix.auth.repository;
 
 import com.reconix.auth.domain.entity.Tenant;
 import org.springframework.data.jpa.repository.JpaRepository;

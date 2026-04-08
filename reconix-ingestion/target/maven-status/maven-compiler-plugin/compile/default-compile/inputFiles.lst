@@ -1,0 +1,8 @@
+C:\programacao\reconix-platform\reconix-ingestion\src\main\java\com\reconix\ingestion\config\MinioConfig.java
+C:\programacao\reconix-platform\reconix-ingestion\src\main\java\com\reconix\ingestion\config\MinioProperties.java
+C:\programacao\reconix-platform\reconix-ingestion\src\main\java\com\reconix\ingestion\controller\IngestionController.java
+C:\programacao\reconix-platform\reconix-ingestion\src\main\java\com\reconix\ingestion\dto\FileIngestedEvent.java
+C:\programacao\reconix-platform\reconix-ingestion\src\main\java\com\reconix\ingestion\dto\UploadResponse.java
+C:\programacao\reconix-platform\reconix-ingestion\src\main\java\com\reconix\ingestion\producer\RabbitMQProducer.java
+C:\programacao\reconix-platform\reconix-ingestion\src\main\java\com\reconix\ingestion\ReconixIngestionApplication.java
+C:\programacao\reconix-platform\reconix-ingestion\src\main\java\com\reconix\ingestion\service\FileStorageService.java

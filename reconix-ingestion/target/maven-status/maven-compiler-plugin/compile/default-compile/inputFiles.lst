@@ -6,3 +6,4 @@ C:\programacao\reconix-platform\reconix-ingestion\src\main\java\com\reconix\inge
 C:\programacao\reconix-platform\reconix-ingestion\src\main\java\com\reconix\ingestion\producer\RabbitMQProducer.java
 C:\programacao\reconix-platform\reconix-ingestion\src\main\java\com\reconix\ingestion\ReconixIngestionApplication.java
 C:\programacao\reconix-platform\reconix-ingestion\src\main\java\com\reconix\ingestion\service\FileStorageService.java
+C:\programacao\reconix-platform\reconix-ingestion\src\main\java\com\reconix\ingestion\service\IngestionService.java

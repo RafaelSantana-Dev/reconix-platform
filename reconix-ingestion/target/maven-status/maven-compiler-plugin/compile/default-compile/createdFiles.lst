@@ -1,0 +1,9 @@
+com\reconix\ingestion\ReconixIngestionApplication.class
+com\reconix\ingestion\service\IngestionService.class
+com\reconix\ingestion\config\MinioConfig.class
+com\reconix\ingestion\dto\UploadResponse.class
+com\reconix\ingestion\service\FileStorageService.class
+com\reconix\ingestion\dto\FileIngestedEvent.class
+com\reconix\ingestion\producer\RabbitMQProducer.class
+com\reconix\ingestion\config\MinioProperties.class
+com\reconix\ingestion\controller\IngestionController.class

@@ -34,6 +34,12 @@ public class DefaultMatchingEngine implements MatchingEngine {
     @Override
     public void addStrategy(MatchingStrategy strategy) { this.strategies.add(strategy); }
 
+    // MÉTODO FALTANTE ADICIONADO AQUI
+    @Override
+    public List<MatchingStrategy> getStrategies() {
+        return List.copyOf(this.strategies);
+    }
+
     private MatchStatus determineStatus(double score) {
         if (score >= 0.85) return MatchStatus.MATCHED;
         if (score >= 0.50) return MatchStatus.PARTIAL_MATCH;

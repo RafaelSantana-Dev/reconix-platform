@@ -41,7 +41,6 @@ public class DefaultMatchingService implements MatchingService {
         List<MatchResult> potentialMatches = new ArrayList<>();
         for (TransactionDto txA_dto : transactionsA) {
             for (TransactionDto txB_dto : transactionsB) {
-                // Não fazer match de uma transação com ela mesma
                 if (txA_dto.id().equals(txB_dto.id())) continue;
 
                 Transaction txA = toDomain(txA_dto);

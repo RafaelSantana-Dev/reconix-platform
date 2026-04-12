@@ -1,0 +1,86 @@
+server:
+  port: 8080
+
+spring:
+  application:
+    name: reconix-gateway
+  cloud:
+    gateway:
+      discovery:
+        locator:
+          enabled: true
+          lower-case-service-id: true
+      default-filters:
+        - DedupeResponseHeader=Access-Control-Allow-Origin Access-Control-Allow-Credentials, RETAIN_UNIQUE
+      routes:
+        # Auth Service
+        - id: reconix-auth
+          uri: lb://reconix-auth
+          predicates:
+            - Path=/api/v1/auth/**
+
+        # Ingestion Service
+        - id: reconix-ingestion
+          uri: lb://reconix-ingestion
+          predicates:
+            - Path=/api/v1/ingestion/**
+
+        # Matching Service
+        - id: reconix-matching
+          uri: lb://reconix-matching
+          predicates:
+            - Path=/api/v1/matching/**
+
+        # Ledger Service
+        - id: reconix-ledger
+          uri: lb://reconix-ledger
+          predicates:
+            - Path=/api/v1/ledger/**
+
+        # Reporting Service
+        - id: reconix-reporting
+          uri: lb://reconix-reporting
+          predicates:
+            - Path=/api/v1/reports/**, /api/v1/dashboard/**
+
+        # Fraud Service
+        - id: reconix-fraud
+          uri: lb://reconix-fraud
+          predicates:
+            - Path=/api/v1/fraud/**
+
+        # Notification Service
+        - id: reconix-notification
+          uri: lb://reconix-notification
+          predicates:
+            - Path=/api/v1/notifications/**
+
+  data:
+    redis:
+      host: ${REDIS_HOST:localhost}
+      port: ${REDIS_PORT:6379}
+      password: ${REDIS_PASSWORD:reconix123}
+
+eureka:
+  client:
+    service-url:
+      defaultZone: http://${EUREKA_USER:reconix}:${EUREKA_PASSWORD:reconix123}@localhost:8761/eureka/
+  instance:
+    prefer-ip-address: true
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info,prometheus,metrics,gateway
+  endpoint:
+    health:
+      show-details: always
+    gateway:
+      enabled: true
+  metrics:
+    tags:
+      application: ${spring.application.name}
+  tracing:
+    sampling:
+      probability: 1.0

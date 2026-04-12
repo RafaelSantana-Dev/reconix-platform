@@ -1,0 +1,38 @@
+server:
+  port: 8081
+
+spring:
+  application:
+    name: reconix-ingestion
+  datasource:
+    url: jdbc:postgresql://localhost:5432/reconix_db
+    username: ${POSTGRES_USER:reconix}
+    password: ${POSTGRES_PASSWORD:reconix123}
+  jpa:
+    hibernate:
+      ddl-auto: validate
+    open-in-view: false
+  flyway:
+    enabled: true
+    baseline-on-migrate: true
+  data:
+    redis:
+      host: localhost
+      port: 6379
+      password: ${REDIS_PASSWORD:reconix123}
+  rabbitmq:
+    host: localhost
+    port: 5672
+    username: ${RABBITMQ_USER:reconix}
+    password: ${RABBITMQ_PASSWORD:reconix123}
+
+eureka:
+  client:
+    service-url:
+      defaultZone: http://${EUREKA_USER:reconix}:${EUREKA_PASSWORD:reconix123}@localhost:8761/eureka/
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info,prometheus,metrics

@@ -1,5 +1,6 @@
 package com.reconix.matching.consumer;
 
+import com.reconix.matching.config.RabbitMQConfig;
 import com.reconix.matching.dto.FileProcessedEvent;
 import com.reconix.matching.service.MatchingService;
 import lombok.RequiredArgsConstructor;
@@ -13,9 +14,8 @@ import org.springframework.stereotype.Component;
 public class RabbitMQConsumer {
 
     private final MatchingService matchingService;
-    private static final String INPUT_QUEUE = "q.file.processed";
 
-    @RabbitListener(queues = INPUT_QUEUE)
+    @RabbitListener(queues = RabbitMQConfig.FILE_PROCESSED_QUEUE)
     public void receiveFileProcessedEvent(FileProcessedEvent event) {
         try {
             matchingService.processFileEvent(event);

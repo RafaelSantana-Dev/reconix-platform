@@ -10,19 +10,21 @@
     <name>reconix-platform</name>
     <description>Reconix - Plataforma de Reconciliação Financeira Inteligente</description>
 
-    <modules>
-        <module>reconix-auth</module>
-        <module>reconix-config</module>
-        <module>reconix-discovery</module>
-        <module>reconix-fraud</module>
-        <module>reconix-gateway</module>
-        <module>reconix-ingestion</module>
-        <module>reconix-ledger</module>
-        <module>reconix-matching</module>
-        <module>reconix-notification</module>
-        <module>reconix-reporting</module>
-        <module>reconix-scheduler</module>
-        <module>shared-libs</module>
-    </modules>
+   <modules>
+    <module>reconix-auth</module>
+    <module>reconix-config</module>
+    <module>reconix-discovery</module>
+    <module>reconix-gateway</module>
+    <module>reconix-ingestion</module>
+    <module>reconix-ledger</module>
+    <module>reconix-matching</module>
+
+    <!-- Módulos temporariamente desabilitados até serem implementados -->
+    <!-- <module>reconix-fraud</module> -->
+    <!-- <module>reconix-notification</module> -->
+    <!-- <module>reconix-reporting</module> -->
+    <!-- <module>reconix-scheduler</module> -->
+    <!-- <module>shared-libs</module> -->
+</modules>
 
 </project>

@@ -2,17 +2,14 @@
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd">
     <modelVersion>4.0.0</modelVersion>
-    
-    <!-- Este é um "aggregator" pom, ele não tem um parent direto do Spring Boot -->
-    <!-- Ele define o projeto como um todo -->
+
     <groupId>com.reconix</groupId>
     <artifactId>reconix-platform</artifactId>
     <version>0.0.1-SNAPSHOT</version>
-    <packaging>pom</packaging> <!-- MUITO IMPORTANTE: packaging deve ser 'pom' -->
+    <packaging>pom</packaging>
     <name>reconix-platform</name>
     <description>Reconix - Plataforma de Reconciliação Financeira Inteligente</description>
 
-    <!-- Lista de todos os submódulos que fazem parte deste projeto -->
     <modules>
         <module>reconix-auth</module>
         <module>reconix-config</module>
@@ -21,12 +18,11 @@
         <module>reconix-gateway</module>
         <module>reconix-ingestion</module>
         <module>reconix-ledger</module>
-        <module>reconix-matching</module> <!-- Nosso novo módulo está aqui! -->
+        <module>reconix-matching</module>
         <module>reconix-notification</module>
         <module>reconix-reporting</module>
         <module>reconix-scheduler</module>
         <module>shared-libs</module>
-        <!-- A pasta reconix-frontend não é um módulo Maven, então não entra aqui -->
     </modules>
 
 </project>

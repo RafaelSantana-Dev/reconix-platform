@@ -239,29 +239,37 @@ reconix-platform/
 │
 ├── reconix-ingestion/           # Ingestão e parsing de arquivos
 │   └── src/main/java/.../
-│       ├── controller/
-│       ├── service/
-│       ├── parser/              # OFX, CSV, XLSX, XML, JSON
-│       ├── normalizer/          # Moeda, data, encoding
-│       ├── producer/            # Eventos RabbitMQ
-│       └── domain/
+│       ├── controller/          # Endpoints de upload
+│       ├── service/             # Lógica de negócio de ingestão
+│       ├── dto/                 # DTOs imutáveis (Records)
+│       ├── producer/            # Publicação de eventos RabbitMQ
+│       ├── service/             # Serviços de armazenamento
+│       └── config/              # Configuração do MinIO
 │
 ├── reconix-matching/            # Motor de conciliação
 │   └── src/main/java/.../
-│       ├── consumer/
-│       ├── engine/
-│       │   ├── strategy/        # ExactMatch, FuzzyMatch, DateRange
-│       │   ├── scorer/          # Levenshtein, score final
-│       │   └── resolver/        # Conflitos e 1:N
-│       ├── producer/
-│       └── domain/
+│       ├── controller/          # Endpoints de matching
+│       ├── consumer/            # Consumo de eventos RabbitMQ
+│       ├── producer/            # Publicação de eventos Kafka
+│       ├── engine/              # Motor de matching principal
+│       │   ├── strategy/        # ExactMatch, FuzzyMatch, DateRange, AmountTolerance
+│       │   ├── scorer/          # Algoritmos de similaridade (Levenshtein)
+│       │   └── impl/            # Implementações concretas
+│       ├── resolver/            # Resolvedor de conflitos
+│       ├── service/             # Serviço de matching
+│       ├── domain/              # Modelos de domínio
+│       └── dto/                 # DTOs para eventos e resultados
 │
 ├── reconix-ledger/              # Event Sourcing + CQRS
 │   └── src/main/java/.../
-│       ├── consumer/
-│       ├── eventstore/          # MongoDB Event Store
-│       ├── projection/          # Projeções de leitura
-│       └── domain/
+│       ├── controller/          # Endpoints de consulta
+│       ├── consumer/            # Consumo de eventos Kafka
+│       ├── eventstore/          # Repositório de eventos MongoDB
+│       │   └── repository/      # Repositório Spring Data
+│       ├── projection/          # Projeções CQRS para leitura
+│       ├── service/             # Serviço de ledger
+│       ├── domain/              # Modelos de agregação
+│       └── dto/                 # DTOs de eventos imutáveis
 │
 ├── reconix-fraud/               # Detecção de fraudes
 │   └── src/main/java/.../
@@ -632,11 +640,11 @@ Todas as decisões arquiteturais importantes são documentadas formalmente na pa
 - [x] Autenticação com Keycloak (OAuth2/OIDC)
 - [x] CI/CD com GitHub Actions
 
-### 🔄 Fase 2 — Core (Em andamento)
-- [ ] Serviço de Ingestão (upload + parsing de arquivos)
-- [ ] Serviço de Matching (algoritmo de conciliação)
-- [ ] Serviço de Ledger (Event Sourcing + CQRS)
-- [ ] Comunicação via RabbitMQ entre serviços
+### ✅ Fase 2 — Core (Concluída)
+- [x] Serviço de Ingestão (upload + parsing de arquivos) - Implementado
+- [x] Serviço de Matching (algoritmo de conciliação) - Implementado
+- [x] Serviço de Ledger (Event Sourcing + CQRS) - Implementado
+- [x] Comunicação via RabbitMQ entre serviços - Implementado
 
 ### 📋 Fase 3 — Inteligência
 - [ ] Serviço de Detecção de Fraudes (Rule Engine)

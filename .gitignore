@@ -29,3 +29,5 @@ replay_pid*
 *.ipr
 # Environment variables
 .env
+# Ignorar scripts de geração de código temporários
+/scripts/

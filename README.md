@@ -1,6 +1,5 @@
 # 🏦 Reconix — Plataforma de Reconciliação Financeira Inteligente
 
-![Java CI](https://github.com/RafaelSantana-Dev/reconix-platform/actions/workflows/ci.yml/badge.svg)
 ![Java](https://img.shields.io/badge/Java-21-orange?style=flat&logo=openjdk&logoColor=white)
 ![Spring Boot](https://img.shields.io/badge/Spring_Boot-3.3-brightgreen?style=flat&logo=spring-boot&logoColor=white)
 ![Spring Cloud](https://img.shields.io/badge/Spring_Cloud-2023.0-brightgreen?style=flat&logo=spring&logoColor=white)

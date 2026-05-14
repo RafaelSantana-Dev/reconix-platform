@@ -1,0 +1,86 @@
+server:
+  port: 8088
+
+spring:
+  application:
+    name: reconix-scheduler
+
+  # PostgreSQL Configuration
+  datasource:
+    url: jdbc:postgresql://${POSTGRES_HOST:localhost}:${POSTGRES_PORT:5432}/${POSTGRES_DB:reconix_scheduler}
+    username: ${POSTGRES_USER:reconix}
+    password: ${POSTGRES_PASSWORD:reconix123}
+    driver-class-name: org.postgresql.Driver
+  
+  jpa:
+    hibernate:
+      ddl-auto: update
+    show-sql: false
+    properties:
+      hibernate:
+        dialect: org.hibernate.dialect.PostgreSQLDialect
+
+  # Quartz Configuration
+  quartz:
+    job-store-type: jdbc
+    jdbc:
+      initialize-schema: always
+    properties:
+      org:
+        quartz:
+          scheduler:
+            instanceName: ReconixScheduler
+            instanceId: AUTO
+          jobStore:
+            class: org.quartz.impl.jdbcjobstore.JobStoreTX
+            driverDelegateClass: org.quartz.impl.jdbcjobstore.PostgreSQLDelegate
+            useProperties: false
+            misfireThreshold: 60000
+            tablePrefix: QRTZ_
+            isClustered: true
+            clusterCheckinInterval: 10000
+          threadPool:
+            class: org.quartz.simpl.SimpleThreadPool
+            threadCount: 10
+            threadPriority: 5
+
+  # Jackson Configuration
+  jackson:
+    default-property-inclusion: NON_NULL
+    serialization:
+      write-dates-as-timestamps: false
+
+# Eureka Client Configuration
+eureka:
+  client:
+    service-url:
+      defaultZone: ${EUREKA_SERVER_URL:http://localhost:8761/eureka}
+  instance:
+    prefer-ip-address: true
+
+# Feign Configuration
+feign:
+  client:
+    config:
+      default:
+        connectTimeout: 5000
+        readTimeout: 10000
+
+# Scheduler Configuration
+scheduler:
+  jobs:
+    daily-report:
+      enabled: true
+      cron: "0 0 8 * * ?" # Todos os dias às 8h
+    weekly-report:
+      enabled: true
+      cron: "0 0 9 ? * MON" # Toda segunda-feira às 9h
+    fraud-analysis:
+      enabled: true
+      cron: "0 */30 * * * ?" # A cada 30 minutos
+
+# Logging
+logging:
+  level:
+    com.reconix.scheduler: DEBUG
+    org.quartz: INFO

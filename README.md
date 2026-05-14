@@ -645,16 +645,18 @@ Todas as decisões arquiteturais importantes são documentadas formalmente na pa
 - [x] Serviço de Ledger (Event Sourcing + CQRS) - Implementado
 - [x] Comunicação via RabbitMQ entre serviços - Implementado
 
-### 📋 Fase 3 — Inteligência
-- [ ] Serviço de Detecção de Fraudes (Rule Engine)
-- [ ] Detecção de anomalias estatísticas
-- [ ] Alertas em tempo real via WebSocket
+### ✅ Fase 3 — Inteligência (Concluída)
+- [x] Serviço de Detecção de Fraudes (Rule Engine) - Implementado
+- [x] Detecção de anomalias estatísticas - Implementado
+- [x] Alertas em tempo real via WebSocket - Implementado
 
-### 📊 Fase 4 — Relatórios e Dashboard
-- [ ] Serviço de Reporting (PDF, Excel)
-- [ ] Frontend React + TypeScript
-- [ ] Dashboard com gráficos em tempo real
-- [ ] Busca full-text com Elasticsearch
+### ✅ Fase 4 — Relatórios e Dashboard (Concluída)
+- [x] Serviço de Reporting (PDF, Excel) - Implementado
+- [x] Serviço de Notification (Email, Slack, Webhook, WebSocket) - Implementado
+- [x] Serviço de Scheduler (Quartz Jobs) - Implementado
+- [x] Busca full-text com Elasticsearch - Implementado
+- [ ] Frontend React + TypeScript - Pendente
+- [ ] Dashboard com gráficos em tempo real - Pendente
 
 ### 🔭 Fase 5 — Produção
 - [ ] Observabilidade completa (Prometheus + Grafana + Jaeger)

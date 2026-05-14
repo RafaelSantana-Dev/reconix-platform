@@ -18,12 +18,12 @@
     <module>reconix-ingestion</module>
     <module>reconix-ledger</module>
     <module>reconix-matching</module>
+    <module>reconix-fraud</module>
+    <module>reconix-notification</module>
+    <module>reconix-reporting</module>
+    <module>reconix-scheduler</module>
 
     <!-- Módulos temporariamente desabilitados até serem implementados -->
-    <!-- <module>reconix-fraud</module> -->
-    <!-- <module>reconix-notification</module> -->
-    <!-- <module>reconix-reporting</module> -->
-    <!-- <module>reconix-scheduler</module> -->
     <!-- <module>shared-libs</module> -->
 </modules>
 

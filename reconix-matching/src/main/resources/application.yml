@@ -1,0 +1,64 @@
+server:
+  port: 8082
+
+spring:
+  application:
+    name: reconix-matching
+
+  # RabbitMQ Configuration
+  rabbitmq:
+    host: ${RABBITMQ_HOST:localhost}
+    port: ${RABBITMQ_PORT:5672}
+    username: ${RABBITMQ_USER:reconix}
+    password: ${RABBITMQ_PASSWORD:reconix123}
+    virtual-host: ${RABBITMQ_VHOST:/}
+
+  # Kafka Configuration
+  kafka:
+    bootstrap-servers: ${KAFKA_BOOTSTRAP_SERVERS:localhost:9092}
+    consumer:
+      group-id: matching-service-group
+      auto-offset-reset: earliest
+      key-deserializer: org.apache.kafka.common.serialization.StringDeserializer
+      value-deserializer: org.springframework.kafka.support.serializer.JsonDeserializer
+      properties:
+        spring.json.trusted.packages: "com.reconix.matching.dto"
+    producer:
+      key-serializer: org.apache.kafka.common.serialization.StringSerializer
+      value-serializer: org.springframework.kafka.support.serializer.JsonSerializer
+
+  # Jackson Configuration
+  jackson:
+    default-property-inclusion: NON_NULL
+    serialization:
+      write-dates-as-timestamps: false
+
+# Eureka Client Configuration
+eureka:
+  client:
+    service-url:
+      defaultZone: ${EUREKA_SERVER_URL:http://localhost:8761/eureka}
+  instance:
+    prefer-ip-address: true
+
+# Matching Algorithm Configuration
+matching:
+  exact:
+    weight: 0.4
+  fuzzy:
+    weight: 0.3
+    threshold: 0.7
+  daterange:
+    weight: 0.2
+    max-days: 2
+  amounttolerance:
+    weight: 0.1
+  amount:
+    tolerance: 0.50
+
+# Logging
+logging:
+  level:
+    com.reconix.matching: DEBUG
+    org.springframework.amqp: INFO
+    org.springframework.kafka: INFO

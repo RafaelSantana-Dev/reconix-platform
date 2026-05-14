@@ -1,0 +1,88 @@
+server:
+  port: 8085
+
+spring:
+  application:
+    name: reconix-fraud
+
+  # MongoDB Configuration
+  data:
+    mongodb:
+      host: ${MONGODB_HOST:localhost}
+      port: ${MONGODB_PORT:27017}
+      database: ${MONGODB_DATABASE:reconix_fraud}
+      username: ${MONGODB_USER:reconix}
+      password: ${MONGODB_PASSWORD:reconix123}
+      authentication-database: admin
+
+  # Redis Configuration
+  redis:
+    host: ${REDIS_HOST:localhost}
+    port: ${REDIS_PORT:6379}
+    password: ${REDIS_PASSWORD:reconix123}
+    database: 2
+
+  # Kafka Configuration
+  kafka:
+    bootstrap-servers: ${KAFKA_BOOTSTRAP_SERVERS:localhost:9092}
+    consumer:
+      group-id: fraud-detection-group
+      auto-offset-reset: earliest
+      key-deserializer: org.apache.kafka.common.serialization.StringDeserializer
+      value-deserializer: org.springframework.kafka.support.serializer.JsonDeserializer
+      properties:
+        spring.json.trusted.packages: "com.reconix.fraud.dto"
+
+  # RabbitMQ Configuration
+  rabbitmq:
+    host: ${RABBITMQ_HOST:localhost}
+    port: ${RABBITMQ_PORT:5672}
+    username: ${RABBITMQ_USER:reconix}
+    password: ${RABBITMQ_PASSWORD:reconix123}
+    virtual-host: ${RABBITMQ_VHOST:/}
+
+  # Jackson Configuration
+  jackson:
+    default-property-inclusion: NON_NULL
+    serialization:
+      write-dates-as-timestamps: false
+
+# Eureka Client Configuration
+eureka:
+  client:
+    service-url:
+      defaultZone: ${EUREKA_SERVER_URL:http://localhost:8761/eureka}
+  instance:
+    prefer-ip-address: true
+
+# Fraud Detection Configuration
+fraud:
+  rules:
+    duplicate-payment:
+      enabled: true
+      time-window-minutes: 5
+    unusual-amount:
+      enabled: true
+      z-score-threshold: 3.0
+    high-frequency:
+      enabled: true
+      max-transactions-per-hour: 50
+    round-amount:
+      enabled: true
+      suspicious-threshold: 0.8
+    unusual-time:
+      enabled: true
+      business-hours-start: 6
+      business-hours-end: 22
+  risk-levels:
+    low: 0.3
+    medium: 0.6
+    high: 0.8
+    critical: 0.95
+
+# Logging
+logging:
+  level:
+    com.reconix.fraud: DEBUG
+    org.springframework.kafka: INFO
+    org.springframework.data.mongodb: INFO

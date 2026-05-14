@@ -1,0 +1,135 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Alerta de Fraude</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            line-height: 1.6;
+            color: #333;
+            max-width: 600px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        .header {
+            background-color: #dc3545;
+            color: white;
+            padding: 20px;
+            text-align: center;
+            border-radius: 5px 5px 0 0;
+        }
+        .content {
+            background-color: #f8f9fa;
+            padding: 20px;
+            border: 1px solid #dee2e6;
+        }
+        .alert-box {
+            background-color: white;
+            padding: 15px;
+            margin: 15px 0;
+            border-left: 4px solid #dc3545;
+            border-radius: 4px;
+        }
+        .info-row {
+            margin: 10px 0;
+            padding: 8px 0;
+            border-bottom: 1px solid #e9ecef;
+        }
+        .label {
+            font-weight: bold;
+            color: #495057;
+        }
+        .value {
+            color: #212529;
+        }
+        .risk-badge {
+            display: inline-block;
+            padding: 5px 10px;
+            border-radius: 3px;
+            font-weight: bold;
+            color: white;
+        }
+        .risk-critical { background-color: #dc3545; }
+        .risk-high { background-color: #fd7e14; }
+        .risk-medium { background-color: #ffc107; color: #000; }
+        .risk-low { background-color: #28a745; }
+        .footer {
+            text-align: center;
+            padding: 20px;
+            color: #6c757d;
+            font-size: 12px;
+        }
+        .rules-list {
+            background-color: #fff3cd;
+            padding: 10px;
+            border-radius: 4px;
+            margin: 10px 0;
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>🚨 Alerta de Fraude Detectado</h1>
+    </div>
+    
+    <div class="content">
+        <div class="alert-box">
+            <div class="info-row">
+                <span class="label">ID do Alerta:</span>
+                <span class="value" th:text="${alertId}"></span>
+            </div>
+            
+            <div class="info-row">
+                <span class="label">Nível de Risco:</span>
+                <span th:class="'risk-badge risk-' + ${#strings.toLowerCase(riskLevel)}" th:text="${riskLevel}"></span>
+                <span class="value" th:text="' (' + ${riskScore} + '%)'"></span>
+            </div>
+            
+            <div class="info-row">
+                <span class="label">ID da Transação:</span>
+                <span class="value" th:text="${transactionId}"></span>
+            </div>
+            
+            <div class="info-row">
+                <span class="label">Descrição:</span>
+                <span class="value" th:text="${transactionDescription}"></span>
+            </div>
+            
+            <div class="info-row">
+                <span class="label">Valor:</span>
+                <span class="value" th:text="'R$ ' + ${transactionAmount}"></span>
+            </div>
+            
+            <div class="info-row">
+                <span class="label">Data da Transação:</span>
+                <span class="value" th:text="${transactionDate}"></span>
+            </div>
+        </div>
+        
+        <div class="rules-list">
+            <p class="label">Regras Acionadas:</p>
+            <ul>
+                <li th:each="rule : ${triggeredRules}" th:text="${rule}"></li>
+            </ul>
+        </div>
+        
+        <div class="alert-box">
+            <p class="label">Motivo da Detecção:</p>
+            <p class="value" th:text="${detectionReason}"></p>
+        </div>
+        
+        <div class="info-row">
+            <span class="label">Detectado em:</span>
+            <span class="value" th:text="${detectedAt}"></span>
+        </div>
+    </div>
+    
+    <div class="footer">
+        <p>Este é um alerta automático do sistema Reconix.</p>
+        <p>Por favor, revise esta transação o mais rápido possível.</p>
+        <p>&copy; 2025 Reconix Platform. Todos os direitos reservados.</p>
+    </div>
+</body>
+</html>

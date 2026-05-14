@@ -1,0 +1,75 @@
+server:
+  port: 8086
+
+spring:
+  application:
+    name: reconix-notification
+
+  # MongoDB Configuration
+  data:
+    mongodb:
+      host: ${MONGODB_HOST:localhost}
+      port: ${MONGODB_PORT:27017}
+      database: ${MONGODB_DATABASE:reconix_notification}
+      username: ${MONGODB_USER:reconix}
+      password: ${MONGODB_PASSWORD:reconix123}
+      authentication-database: admin
+
+  # RabbitMQ Configuration
+  rabbitmq:
+    host: ${RABBITMQ_HOST:localhost}
+    port: ${RABBITMQ_PORT:5672}
+    username: ${RABBITMQ_USER:reconix}
+    password: ${RABBITMQ_PASSWORD:reconix123}
+    virtual-host: ${RABBITMQ_VHOST:/}
+
+  # Email Configuration
+  mail:
+    host: ${MAIL_HOST:smtp.gmail.com}
+    port: ${MAIL_PORT:587}
+    username: ${MAIL_USERNAME:}
+    password: ${MAIL_PASSWORD:}
+    properties:
+      mail:
+        smtp:
+          auth: true
+          starttls:
+            enable: true
+            required: true
+    default-encoding: UTF-8
+
+  # Jackson Configuration
+  jackson:
+    default-property-inclusion: NON_NULL
+    serialization:
+      write-dates-as-timestamps: false
+
+# Eureka Client Configuration
+eureka:
+  client:
+    service-url:
+      defaultZone: ${EUREKA_SERVER_URL:http://localhost:8761/eureka}
+  instance:
+    prefer-ip-address: true
+
+# Notification Configuration
+notification:
+  email:
+    enabled: true
+    from: noreply@reconix.com
+    from-name: Reconix Platform
+  slack:
+    enabled: false
+    webhook-url: ${SLACK_WEBHOOK_URL:}
+  webhook:
+    enabled: true
+    timeout-seconds: 10
+  websocket:
+    enabled: true
+
+# Logging
+logging:
+  level:
+    com.reconix.notification: DEBUG
+    org.springframework.amqp: INFO
+    org.springframework.mail: DEBUG
